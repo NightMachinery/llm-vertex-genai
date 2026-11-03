@@ -84,7 +84,7 @@ class Vertex(llm.Model):
         top_k: Optional[int] = None
         thinking_level: Optional[str] = Field(
             default=None,
-            description='minimal, low, medium or high (Gemini 3 and later)',
+            description='low, medium or high; minimal where the model supports it',
         )
 
     def __init__(self, model_id):

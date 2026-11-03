@@ -46,7 +46,7 @@ Built-in models: `gemini-4-argon`, `gemini-3.8-flash`, `gemini-3.1-pro-preview`,
 export LLM_VERTEX_MODELS=gemini-next-preview,another-model-id
 ```
 
-Options: `temperature`, `top_p`, `top_k`, `max_output_tokens`, `thinking_level` (`minimal`, `low`, `medium`, `high`).
+Options: `temperature`, `top_p`, `top_k`, `max_output_tokens`, `thinking_level` (`low`, `medium`, `high`; `minimal` only where the model supports it, which Gemini 3.8 Flash and 4 Argon do not).
 
 ## Development
 
