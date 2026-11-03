@@ -1,94 +1,61 @@
-# llm-vertex-fork
+# llm-vertex-genai
 
-Plugin for LLM adding support for Google Cloud Vertex AI.
+An [LLM](https://llm.datasette.io/) plugin for Gemini models on **Google Cloud Vertex AI**, built on the `google-genai` SDK.
 
-Please note that this plugin is for Vertex AI specifically, not Google AI Studio.
+It is for Vertex AI, billed to a GCP project and authenticated with `gcloud`. For Google AI Studio API keys, use [llm-gemini](https://github.com/simonw/llm-gemini) instead.
 
-For Gemini support using AI Studio, please see [llm-gemini](https://github.com/simonw/llm-gemini) instead.
+Compared with the plugins it grew from ([justyns/llm-vertex](https://github.com/justyns/llm-vertex), then [avoidik/llm-vertex](https://github.com/avoidik/llm-vertex)), it adds:
 
-Supported models:
-
-- gemini-3-flash-preview
-- gemini-3-pro-preview
-- gemini-2.5-flash
-- gemini-2.5-pro
-- gemini-2.0-flash-lite
-- gemini-2.0-flash
-- gemini-1.5-pro
-- gemini-1.5-flash
+- **attachments**: images, audio, video, PDF and text, plus `gs://` URIs;
+- **real conversation history** for `llm -c` and `llm chat`, model turns included;
+- **any model id**, through `LLM_VERTEX_MODELS`, so a new Gemini release needs no plugin update;
+- a `thinking_level` option, token usage in `llm logs`, and the `global` location by default;
+- no Google auth at registration, so other `llm` commands do not slow down.
 
 ## Installation
 
-See [Installing Plugins](https://llm.datasette.io/en/stable/plugins/installing-plugins.html) for detailed instructions.
-
-**Method 1: Use llm**
-
 ```terminal
-$ llm install llm-vertex-fork
+llm install https://github.com/NightMachinery/llm-vertex-genai/archive/refs/heads/main.zip
 ```
 
-**Method 2: Use pip**
-
-```terminal
-$ pip install llm-vertex-fork
-```
-
-**Method 3: Manual**
-
-```terminal
-$ git clone https://github.com/avoidik/llm-vertex
-$ llm install -e llm-vertex
-```
+It registers the same `vertex-…` model ids as `llm-vertex`, so uninstall that first: `llm uninstall llm-vertex`.
 
 ## Use
 
-First, authenticate using `gcloud`:
+Authenticate and pick a project:
 
 ```terminal
-$ gcloud auth application-default login
+gcloud auth application-default login
+export VERTEX_PROJECT_ID=my-gcp-project   # or GOOGLE_CLOUD_PROJECT
+export VERTEX_LOCATION=global             # optional; global is the default
 ```
 
-Export two environment variables for the GCP Project and location you want to use:
+Then:
 
 ```terminal
-$ export VERTEX_PROJECT_ID=gcp-project-id VERTEX_LOCATION=us-east1
+llm -m vertex-gemini-3.8-flash "What's one clever name for a pet pelican?"
+llm -m vertex-gemini-4-argon -a photo.jpg "Describe this image."
+llm -m vertex-gemini-3.8-flash -a memo.wav "Transcribe this."
+llm -m vertex-gemini-4-argon -o thinking_level high "Prove that sqrt(2) is irrational."
+llm chat -m vertex-gemini-3.8-flash
 ```
 
-Run llm and specify one of the provided models:
+Built-in models: `gemini-4-argon`, `gemini-3.8-flash`, `gemini-3.1-pro-preview`, `gemini-3-flash-preview`, `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-2.5-flash-lite`. Register more, comma-separated, each one becoming `vertex-<id>`:
 
 ```terminal
-$ llm -m vertex-gemini-2.5-pro "What's one clever name for a pet pelican?"
-
-**Bill Murray.**
-
-It's clever because it's a pun on the pelican's most prominent feature (its **bill**) and evokes the actor's beloved, slightly goofy, and deadpan persona, which fits a pelican perfectly.
+export LLM_VERTEX_MODELS=gemini-next-preview,another-model-id
 ```
 
-Or, in a chat mode:
-
-```terminal
-$ llm chat -m vertex-gemini-2.5-pro
-```
+Options: `temperature`, `top_p`, `top_k`, `max_output_tokens`, `thinking_level` (`minimal`, `low`, `medium`, `high`).
 
 ## Development
 
-Create and activate a virtual environment:
-
 ```terminal
-$ python -m venv .venv
-$ source .venv/bin/activate
+uv run --with pytest --with-editable . python -m pytest
 ```
 
-Install the package in development mode with test dependencies:
+The tests build requests offline and never call Vertex.
 
-```terminal
-$ pip install -e '.[dev]'
-```
+## License
 
-Run the tests:
-
-```terminal
-$ python -m pytest
-```
-
-The tests use mocking to avoid requiring actual Google Cloud credentials during development, but do not really test actual functionality outside of making sure the plugin is installed and can be used.
+Apache-2.0, as upstream. See `LICENSE`. The changes from upstream are listed at the top of `llm_vertex_genai.py` and in the git history.
